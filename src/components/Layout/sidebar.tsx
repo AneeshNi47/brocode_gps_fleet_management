@@ -1,4 +1,5 @@
 import React from 'react';
+import { NavLink } from 'react-router-dom';
 import { ClipboardList, Home, LogOut, Menu, Settings, Shield, Truck, User, Users, Plus } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -19,17 +20,9 @@ const NAV_ITEMS: NavItem[] = [{
   label: 'Drivers',
   icon: <Users className="h-4 w-4" />
 }, {
-  key: 'add-driver',
-  label: 'Add Driver',
-  icon: <User className="h-4 w-4" />
-}, {
   key: 'vehicles',
   label: 'Vehicles',
   icon: <Truck className="h-4 w-4" />
-}, {
-  key: 'register-vehicle',
-  label: 'Register Vehicle',
-  icon: <Plus className="h-4 w-4" />
 }, {
   key: 'logs',
   label: 'Logs',
@@ -50,9 +43,13 @@ export function Sidebar({
   return <aside className={cn('h-full border-r bg-sidebar flex flex-col', collapsed ? 'w-16' : 'w-64')}>
       <div className="sticky top-0 z-20 flex items-center gap-2 border-b p-3">
         <div className="h-8 w-8 rounded bg-primary text-primary-foreground grid place-items-center">
-          <Shield className="h-5 w-5" />
+           <img
+              src="/logo.png"
+              alt="Company Logo"
+              className="h-6 w-6 object-contain"
+            />
         </div>
-        {!collapsed && <div className="font-semibold">FleetSight</div>}
+        {!collapsed && <div className="font-semibold">Brocode FleetManager</div>}
         <button aria-label="Toggle sidebar" className="ml-auto rounded p-2 hover:bg-muted" onClick={onToggle}>
           <Menu className="h-4 w-4" />
         </button>
@@ -60,10 +57,12 @@ export function Sidebar({
       <nav className="flex-1 p-2">
         {NAV_ITEMS.map(item => {
         const isActive = active === item.key;
-        return <button key={item.key} onClick={() => setActive(item.key)} className={cn('w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground', isActive && 'bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90')}>
-              {item.icon}
+        return <NavLink
+            to={`/${item.key === "dashboard" ? "":item.key}`}
+            className={cn('w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground', isActive && 'bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90')}>   
+            {item.icon}
               {!collapsed && <span>{item.label}</span>}
-            </button>;
+          </NavLink>
       })}
       </nav>
       <div className="border-t p-3">

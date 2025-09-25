@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
 import { Container, Theme } from './settings/types';
-// %IMPORT_STATEMENT
-import { FleetAppLayout } from './components/generated/FleetAppLayout'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { FleetAppLayout } from './components/generated/FleetAppLayout';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { LandingPage } from './components/pages/LandingPage';
+import { AuthCallback } from './components/auth/AuthCallback'; // Optional: ERPNext callback
 
-let theme: Theme = 'light';
-// only use 'centered' container for standalone components, never for full page apps or websites.
-let container: Container = 'none';
+const theme: Theme = 'light';
+const container: Container = 'none';
 
 function App() {
   function setTheme(theme: Theme) {
@@ -18,19 +20,34 @@ function App() {
 
   setTheme(theme);
 
-  const generatedComponent = useMemo(() => {
-    // THIS IS WHERE THE TOP LEVEL GENRATED COMPONENT WILL BE RETURNED!
-    return <FleetAppLayout />; // %EXPORT_STATEMENT%
+  const renderedApp = useMemo(() => {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <FleetAppLayout />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </BrowserRouter>
+    );
   }, []);
 
   if (container === 'centered') {
     return (
       <div className="h-full w-full flex flex-col items-center justify-center">
-        {generatedComponent}
+        {renderedApp}
       </div>
     );
   } else {
-    return generatedComponent;
+    return renderedApp;
   }
 }
 

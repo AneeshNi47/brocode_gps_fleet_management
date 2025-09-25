@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useIsMobile } from '../../hooks/use-mobile';
-import { Sidebar,PageKey } from '../Layout/sidebar';
+import { Sidebar, PageKey } from '../Layout/sidebar';
 import { Topbar } from '../Layout/topbar';
 import { Dashboard } from '../pages/dashboard/Dashboard';
 import { DriversPage } from '../pages/drivers/listDrivers';
@@ -12,106 +13,76 @@ import { VehicleDetail } from '../pages/vehicles/viewVehicle';
 import { DriverDetail } from '../pages/drivers/viewDriver';
 import { ActivityLogs } from '../pages/activityLogs/activityLogs';
 
-
-
-
-// Router-like state in layout
-type RouteState = {
-  page: 'dashboard';
-} | {
-  page: 'drivers';
-} | {
-  page: 'add-driver';
-} | {
-  page: 'vehicles';
-} | {
-  page: 'register-vehicle';
-} | {
-  page: 'logs';
-} | {
-  page: 'vehicle-detail';
-  regNo: string;
-} | {
-  page: 'driver-detail';
-  id: string;
-};
-
-// @component: FleetAppLayout
-export const FleetAppLayout: React.FC = () => {
+export const FleetAppLayout = () => {
   const isMobile = useIsMobile();
   const [collapsed, setCollapsed] = useState(false);
   const [globalQuery, setGlobalQuery] = useState('');
-  const [route, setRoute] = useState<RouteState>({
-    page: 'dashboard'
-  });
-  const goto = (p: PageKey) => {
-    if (p === 'dashboard') setRoute({
-      page: 'dashboard'
-    });
-    if (p === 'drivers') setRoute({
-      page: 'drivers'
-    });
-    if (p === 'add-driver') setRoute({
-      page: 'add-driver'
-    });
-    if (p === 'vehicles') setRoute({
-      page: 'vehicles'
-    });
-    if (p === 'register-vehicle') setRoute({
-      page: 'register-vehicle'
-    });
-    if (p === 'logs') setRoute({
-      page: 'logs'
-    });
-  };
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // @return
-  return <div className="h-full w-full grid" style={{
-    gridTemplateColumns: isMobile ? '1fr' : collapsed ? '4rem 1fr' : '16rem 1fr',
-    gridTemplateRows: 'auto 1fr'
-  }}>
-      {!isMobile && <div className="row-span-2">
-          <Sidebar active={route.page as PageKey} setActive={goto} collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} />
-        </div>}
+  const goto = (p: PageKey) => navigate(`/${p}`);
+
+  return (
+    <div className="h-full w-full grid" style={{
+      gridTemplateColumns: isMobile ? '1fr' : collapsed ? '4rem 1fr' : '16rem 1fr',
+      gridTemplateRows: 'auto 1fr'
+    }}>
+      {!isMobile && (
+        <div className="row-span-2">
+          <Sidebar active={location.pathname.slice(1) as PageKey} setActive={goto} collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} />
+        </div>
+      )}
       <div className="col-span-1">
-        <Topbar onSearch={q => setGlobalQuery(q)} onQuick={a => {
-        if (a === 'add-driver') goto('add-driver');
-        if (a === 'register-vehicle') goto('register-vehicle');
-      }} />
+        <Topbar
+          onSearch={setGlobalQuery}
+          onQuick={(a) => {
+            if (a === 'add-driver') goto('add-driver');
+            if (a === 'register-vehicle') goto('register-vehicle');
+          }}
+        />
       </div>
       <main className="col-span-1 overflow-auto">
         <AnimatePresence mode="wait">
-          <motion.div key={JSON.stringify(route)} initial={{
-          opacity: 0,
-          y: 8
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} exit={{
-          opacity: 0,
-          y: -8
-        }}>
-            {route.page === 'dashboard' && <Dashboard goto={goto} />}
-            {route.page === 'drivers' && <DriversPage query={globalQuery} setQuery={q => setGlobalQuery(q)} gotoVehicle={regNo => setRoute({
-            page: 'vehicle-detail',
-            regNo
-          })} gotoDriver={id => setRoute({
-            page: 'driver-detail',
-            id
-          })} />}
-            {route.page === 'add-driver' && <AddDriverForm />}
-            {route.page === 'vehicles' && <VehiclesPage onOpenRegister={() => goto('register-vehicle')} gotoVehicle={regNo => setRoute({
-            page: 'vehicle-detail',
-            regNo
-          })} />}
-            {route.page === 'register-vehicle' && <RegisterVehicleForm />}
-            {route.page === 'logs' && <ActivityLogs />}
-            {route.page === 'vehicle-detail' && <VehicleDetail regNo={route.regNo} />}
-            {route.page === 'driver-detail' && <DriverDetail id={route.id} onBack={() => setRoute({
-            page: 'drivers'
-          })} />}
+          <motion.div key={location.pathname} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+            <Routes location={location} key={location.pathname}>
+              <Route path="/" element={<Dashboard/>} />
+              <Route path="/drivers" element={
+                <DriversPage
+                  query={globalQuery}
+                  setQuery={setGlobalQuery}
+                  gotoVehicle={(regNo) => navigate(`/vehicle-detail/${regNo}`)}
+                  gotoDriver={(id) => navigate(`/driver-detail/${id}`)}
+                />}
+              />
+              <Route path="/add-driver" element={<AddDriverForm />} />
+              <Route path="/vehicles" element={
+                <VehiclesPage
+                  onOpenRegister={() => goto('register-vehicle')}
+                  gotoVehicle={(regNo) => navigate(`/vehicle-detail/${regNo}`)}
+                />}
+              />
+              <Route path="/register-vehicle" element={<RegisterVehicleForm />} />
+              <Route path="/logs" element={<ActivityLogs />} />
+              <Route path="/vehicle-detail/:regNo" element={<VehicleDetailWrapper />} />
+              <Route path="/driver-detail/:id" element={<DriverDetailWrapper />} />
+            </Routes>
           </motion.div>
         </AnimatePresence>
       </main>
-    </div>;
+    </div>
+  );
 };
+
+// Wrapper components to extract params from the URL
+import { useParams } from 'react-router-dom';
+
+function VehicleDetailWrapper() {
+  const { regNo = '' } = useParams();
+  return <VehicleDetail regNo={regNo} />;
+}
+
+function DriverDetailWrapper() {
+  const { id = '' } = useParams();
+  const navigate = useNavigate();
+  return <DriverDetail id={id} onBack={() => navigate('/drivers')} />;
+}
