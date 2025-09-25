@@ -1,6 +1,6 @@
 import { FUEL_TYPES, MOCK_DRIVERS, Vehicle, VEHICLE_TYPES } from "@/components/mockData/MockData";
-import { Card, CardContent, CardHeader, PillButton } from "@/components/utility/utility_components";
-import { Badge, Car, Loader2, Plus, Upload } from "lucide-react";
+import { Card, CardContent, CardHeader, PillButton,Badge } from "@/components/utility/utility_components";
+import { Car, Loader2, Plus, Upload } from "lucide-react";
 import React, {useState, useMemo} from "react"
 
 export function RegisterVehicleForm() {
