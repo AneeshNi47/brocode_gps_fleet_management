@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { ClipboardList, Home, LogOut, Menu, Settings, Shield, Truck, User, Users, Plus } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import axios from 'axios';
 
 export type PageKey = 'dashboard' | 'drivers' | 'add-driver' | 'vehicles' | 'register-vehicle' | 'logs' | 'vehicle-detail' | 'driver-detail';
 type NavItem = {
@@ -28,6 +29,35 @@ const NAV_ITEMS: NavItem[] = [{
   label: 'Logs',
   icon: <ClipboardList className="h-4 w-4" />
 }];
+
+const handleLogout = async () => {
+  const baseUrl = import.meta.env.VITE_ERP_BASE_URL;
+
+  try {
+    // Call ERPNext logout
+    const res = await axios.get(`${baseUrl}/api/method/logout`, {
+      withCredentials: true
+    });
+
+    // Confirm logout by calling a protected API
+    const checkSession = await axios.get(`${baseUrl}/api/method/frappe.auth.get_logged_user`, {
+      withCredentials: true
+    });
+
+    if (checkSession.data.message === 'Guest') {
+      console.log("Successfully logged out.");
+    } else {
+      console.warn("Still logged in as:", checkSession.data.message);
+    }
+  } catch (error) {
+    console.error('Logout API failed:', error);
+  }
+
+  // Always clear local storage & redirect
+  localStorage.clear();
+  sessionStorage.clear();
+  window.location.href = '/'; // redirect to login/landing
+};
 
 export function Sidebar({
   active,
@@ -75,7 +105,11 @@ export function Sidebar({
           <button className="ml-auto rounded p-2 hover:bg-muted" aria-label="Settings">
             <Settings className="h-4 w-4" />
           </button>
-          <button className="rounded p-2 hover:bg-muted" aria-label="Logout">
+          <button
+            className="rounded p-2 hover:bg-muted"
+            aria-label="Logout"
+            onClick={handleLogout}
+          >
             <LogOut className="h-4 w-4" />
           </button>
         </div>
